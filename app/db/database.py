@@ -21,4 +21,5 @@ class Base(DeclarativeBase):
     pass
 
 def initial_db():
+    from app.models import uzmovie
     Base.metadata.create_all(engine)
