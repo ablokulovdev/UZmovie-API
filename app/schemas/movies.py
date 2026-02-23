@@ -1,30 +1,32 @@
+from datetime import datetime
 from pydantic import BaseModel
-from typing import List
-    
 
-class MoviesResponses(BaseModel):
+
+class MoviesRespons(BaseModel):
     
-    id: int
-    name : str
+    id : int
+    title: str
+    movie_img: str
     description: str | None = None
     genre: str
-    state : str
-    active : bool
+    state: str
+    active: bool
+    year: int
     language: str
     duration: int
-    age_limit : str
-    views_url : str
-    treyler_url : str
-    
+    age_limit: int
+    treyler_url: str
+    vedio_url: str
+    created_at: datetime
+    updated_at : datetime | None = None  
     
     class Config:
         from_attributes = True
+        
+        
+class MoviesListRespons(BaseModel):
     
-    
-    
-class MoviesListRespons (BaseModel):
-    
-    movies : List[MoviesResponses]
+    movies: list[MoviesRespons]
     count: int | None = None
     
     class Config:

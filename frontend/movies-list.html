@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kinolar — CineUZ</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --accent: #e63946;
+    --accent2: #ff6b6b;
+    --text: #e8e8f0;
+    --muted: #5a5a72;
+    --input-bg: #16161f;
+    --card-bg: #13131c;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 10% 0%, rgba(230,57,70,0.07) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 80%, rgba(230,57,70,0.04) 0%, transparent 50%);
+  }
+
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 40px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0;
+    background: rgba(10,10,15,0.94);
+    backdrop-filter: blur(14px);
+    z-index: 100;
+  }
+  .logo { font-family:'Bebas Neue',sans-serif; font-size:1.8rem; letter-spacing:3px; color:#fff; }
+  .logo span { color: var(--accent); }
+  .nav-add {
+    background: var(--accent); color:#fff; text-decoration:none;
+    padding: 9px 22px; border-radius:8px; font-size:0.85rem;
+    font-weight:600; letter-spacing:0.5px;
+    transition: background 0.2s, transform 0.2s;
+    border:none; cursor:pointer;
+  }
+  .nav-add:hover { background: var(--accent2); transform:translateY(-1px); }
+
+  main { max-width:1280px; margin:0 auto; padding:36px 24px 80px; }
+
+  .filters {
+    display:flex; gap:10px; margin-bottom:28px;
+    flex-wrap:wrap; align-items:center;
+  }
+  .search-wrap { flex:1; min-width:220px; position:relative; }
+  .search-ico { position:absolute; left:13px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none; }
+
+  input[type="text"], input[type="number"], select {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    padding: 11px 14px 11px 38px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input[type="number"], select { padding-left:14px; width:auto; }
+  input:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(230,57,70,0.1);
+  }
+  select option { background: var(--surface); }
+
+  .btn-clear {
+    padding:11px 18px; border-radius:8px; border:1px solid var(--border);
+    background:var(--input-bg); color:var(--muted);
+    font-family:'DM Sans',sans-serif; font-size:0.85rem;
+    cursor:pointer; transition:all 0.15s;
+  }
+  .btn-clear:hover { border-color:var(--accent); color:var(--accent); }
+
+  .stats-bar {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:20px; padding-bottom:14px;
+    border-bottom:1px solid var(--border);
+    font-size:0.85rem; color:var(--muted); min-height:24px;
+  }
+  .stats-bar strong { color:var(--text); }
+
+  .error-banner {
+    background:rgba(230,57,70,0.1); border:1px solid rgba(230,57,70,0.3);
+    border-radius:10px; padding:14px 18px; color:var(--accent2);
+    font-size:0.88rem; margin-bottom:20px; display:none;
+  }
+
+  .movies-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+    gap:18px;
+  }
+
+  /* CARD */
+  .card {
+    background:var(--card-bg); border:1px solid var(--border);
+    border-radius:12px; overflow:hidden; cursor:pointer;
+    transition: transform 0.22s, border-color 0.22s, box-shadow 0.22s;
+    animation: fadeUp 0.35s ease both;
+  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+  .card:hover { transform:translateY(-6px); border-color:rgba(230,57,70,0.45); box-shadow:0 14px 36px rgba(0,0,0,0.45); }
+
+  .card-img-wrap { position:relative; overflow:hidden; aspect-ratio:2/3; background:var(--border); }
+  .card-img-wrap img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.4s; }
+  .card:hover .card-img-wrap img { transform:scale(1.06); }
+  .no-img { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:3.5rem; opacity:0.25; }
+
+  .badge {
+    position:absolute; top:9px; left:9px;
+    padding:3px 8px; border-radius:6px;
+    font-size:0.63rem; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+  }
+  .badge-published { background:rgba(40,167,69,0.88); color:#fff; }
+  .badge-draft { background:rgba(140,90,0,0.9); color:#ffd166; }
+  .badge-upcoming { background:rgba(30,80,200,0.88); color:#aac4ff; }
+
+  .age-badge {
+    position:absolute; top:9px; right:9px;
+    width:28px; height:28px; border-radius:50%;
+    background:rgba(230,57,70,0.9); color:#fff;
+    font-size:0.62rem; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  .card-body { padding:12px 14px 14px; }
+  .card-title { font-weight:600; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:5px; }
+  .card-meta { display:flex; align-items:center; gap:6px; font-size:0.73rem; color:var(--muted); flex-wrap:wrap; }
+  .dot { width:3px; height:3px; border-radius:50%; background:var(--muted); flex-shrink:0; }
+  .card-genres { margin-top:7px; display:flex; gap:4px; flex-wrap:wrap; }
+  .card-genre { padding:2px 7px; border-radius:100px; border:1px solid var(--border); font-size:0.65rem; color:var(--muted); }
+
+  /* SKELETON */
+  .skel { background:var(--card-bg); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .skel-img { aspect-ratio:2/3; background:linear-gradient(90deg,var(--border) 25%,#22223a 50%,var(--border) 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; }
+  .skel-body { padding:12px 14px; display:flex; flex-direction:column; gap:8px; }
+  .skel-line { height:11px; border-radius:6px; background:linear-gradient(90deg,var(--border) 25%,#22223a 50%,var(--border) 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+  /* EMPTY */
+  .empty { text-align:center; padding:80px 20px; color:var(--muted); grid-column:1/-1; }
+  .empty .ico { font-size:4rem; opacity:0.3; margin-bottom:14px; }
+  .empty h3 { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; color:var(--text); letter-spacing:2px; margin-bottom:6px; }
+
+  /* PAGINATION */
+  .pagination { display:flex; align-items:center; justify-content:center; gap:6px; margin-top:44px; flex-wrap:wrap; }
+  .pg-btn {
+    min-width:36px; height:36px; border-radius:8px;
+    border:1px solid var(--border); background:var(--input-bg);
+    color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.88rem;
+    cursor:pointer; transition:all 0.15s;
+    display:flex; align-items:center; justify-content:center; padding:0 10px;
+  }
+  .pg-btn:hover:not(:disabled) { border-color:var(--accent); color:var(--accent); }
+  .pg-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .pg-btn:disabled { opacity:0.3; cursor:not-allowed; }
+  .pg-dots { color:var(--muted); padding:0 4px; }
+
+  @media(max-width:600px) {
+    nav { padding:14px 18px; }
+    main { padding:22px 14px 60px; }
+    .movies-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap:12px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">CINE<span>.</span>UZ</div>
+  <a href="create-movie.html" class="nav-add">+ Kino qo'shish</a>
+</nav>
+
+<main>
+  <div class="filters">
+    <div class="search-wrap">
+      <span class="search-ico">🔍</span>
+      <input type="text" id="searchInput" placeholder="Kino nomini qidiring... (min 3 harf)">
+    </div>
+    <input type="number" id="yearInput" placeholder="Yil" min="1900" max="2099" style="max-width:100px">
+    <select id="limitSelect">
+      <option value="10">10 ta</option>
+      <option value="20">20 ta</option>
+      <option value="50">50 ta</option>
+    </select>
+    <button class="btn-clear" onclick="clearFilters()">✕ Tozalash</button>
+  </div>
+
+  <div class="error-banner" id="errorBanner"></div>
+
+  <div class="stats-bar">
+    <span id="countLabel"></span>
+  </div>
+
+  <div class="movies-grid" id="moviesGrid"></div>
+  <div class="pagination" id="pagination"></div>
+</main>
+
+<script>
+  // ← Shu qatorni o'zgartiring
+  const API = 'http://localhost:8000';
+
+  const state = { search:'', year:null, page:1, limit:10 };
+  let searchTimer = null;
+
+  const $ = id => document.getElementById(id);
+
+  // Events
+  $('searchInput').addEventListener('input', e => {
+    clearTimeout(searchTimer);
+    const v = e.target.value.trim();
+    searchTimer = setTimeout(() => {
+      if (v.length === 0 || v.length >= 3) {
+        state.search = v; state.page = 1; fetchMovies();
+      }
+    }, 450);
+  });
+
+  $('yearInput').addEventListener('change', e => {
+    const v = parseInt(e.target.value);
+    state.year = isNaN(v) ? null : v;
+    state.page = 1; fetchMovies();
+  });
+
+  $('limitSelect').addEventListener('change', e => {
+    state.limit = parseInt(e.target.value);
+    state.page = 1; fetchMovies();
+  });
+
+  function clearFilters() {
+    $('searchInput').value = '';
+    $('yearInput').value = '';
+    $('limitSelect').value = '10';
+    Object.assign(state, { search:'', year:null, page:1, limit:10 });
+    fetchMovies();
+  }
+
+  function buildURL() {
+    const p = new URLSearchParams();
+    if (state.search.length >= 3) p.set('search', state.search);
+    if (state.year) p.set('year', state.year);
+    p.set('page', state.page);
+    p.set('limit', state.limit);
+    return `${API}/movies?${p}`;
+  }
+
+  function showSkeletons() {
+    const n = Math.min(state.limit, 12);
+    $('moviesGrid').innerHTML = Array(n).fill(0).map(() => `
+      <div class="skel">
+        <div class="skel-img"></div>
+        <div class="skel-body">
+          <div class="skel-line" style="width:75%"></div>
+          <div class="skel-line" style="width:50%"></div>
+        </div>
+      </div>`).join('');
+    $('pagination').innerHTML = '';
+    $('countLabel').textContent = '';
+  }
+
+  function stateBadge(s) {
+    const map = {
+      published:['badge-published','Faol'],
+      draft:['badge-draft','Qoralama'],
+      upcoming:['badge-upcoming','Tez kunda']
+    };
+    const [cls, label] = map[s] || ['badge-draft', s || ''];
+    return `<span class="badge ${cls}">${label}</span>`;
+  }
+
+  // genre field turli formatda kelishi mumkin: array, JSON string, oddiy string
+  function parseGenres(genre) {
+    if (!genre) return [];
+    if (Array.isArray(genre)) return genre;
+    try {
+      const parsed = JSON.parse(genre);
+      return Array.isArray(parsed) ? parsed : [String(genre)];
+    } catch {
+      // "['Drama', 'Comedy']" kabi Python list string
+      const match = String(genre).replace(/[\[\]'"`]/g, '').split(',').map(s => s.trim()).filter(Boolean);
+      return match;
+    }
+  }
+
+  function renderMovies(movies) {
+    const grid = $('moviesGrid');
+    if (!movies.length) {
+      grid.innerHTML = `<div class="empty">
+        <div class="ico">🎬</div>
+        <h3>KINO TOPILMADI</h3>
+        <p>Boshqa kalit so'z yoki yil bilan qidiring</p>
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = movies.map((m, i) => {
+      const imgSrc = m.movie_img ? `${API}/${m.movie_img}` : null;
+      const genres = parseGenres(m.genre).slice(0, 2);
+
+      return `<div class="card" style="animation-delay:${i*0.04}s" onclick="openMovie(${m.id})">
+        <div class="card-img-wrap">
+          ${imgSrc
+            ? `<img src="${imgSrc}" alt="${m.title}" loading="lazy"
+                onerror="this.parentElement.innerHTML='<div class=no-img>🎬</div>'">`
+            : `<div class="no-img">🎬</div>`}
+          ${stateBadge(m.state)}
+          <div class="age-badge">${m.age_limit}+</div>
+        </div>
+        <div class="card-body">
+          <div class="card-title" title="${m.title}">${m.title}</div>
+          <div class="card-meta">
+            <span>${m.year}</span>
+            ${m.language ? `<span class="dot"></span><span>${m.language}</span>` : ''}
+            ${m.duration ? `<span class="dot"></span><span>${m.duration} daq</span>` : ''}
+          </div>
+          ${genres.length ? `<div class="card-genres">${genres.map(g=>`<span class="card-genre">${g}</span>`).join('')}</div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderPagination(total) {
+    const totalPages = Math.ceil(total / state.limit);
+    const el = $('pagination');
+    if (totalPages <= 1) { el.innerHTML = ''; return; }
+
+    let pages = [];
+    for (let p = 1; p <= totalPages; p++) {
+      if (p === 1 || p === totalPages || Math.abs(p - state.page) <= 1) pages.push(p);
+      else if (Math.abs(p - state.page) === 2) pages.push('...');
+    }
+    // dedupe dots
+    pages = pages.filter((p, i) => !(p === '...' && pages[i-1] === '...'));
+
+    let html = `<button class="pg-btn" onclick="goPage(${state.page-1})" ${state.page===1?'disabled':''}>‹</button>`;
+    pages.forEach(p => {
+      if (p === '...') html += `<span class="pg-dots">···</span>`;
+      else html += `<button class="pg-btn ${p===state.page?'active':''}" onclick="goPage(${p})">${p}</button>`;
+    });
+    html += `<button class="pg-btn" onclick="goPage(${state.page+1})" ${state.page===totalPages?'disabled':''}>›</button>`;
+    el.innerHTML = html;
+  }
+
+  function goPage(p) {
+    state.page = p;
+    fetchMovies();
+    window.scrollTo({ top:0, behavior:'smooth' });
+  }
+
+  async function fetchMovies() {
+    showSkeletons();
+    $('errorBanner').style.display = 'none';
+
+    try {
+      const res = await fetch(buildURL());
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `Server xatosi: ${res.status}`);
+      }
+
+      // Backend qaytaradi: { movies: [...], count: int | null }
+      const data = await res.json();
+      const movies = data.movies ?? [];
+      const count  = (data.count != null) ? data.count : movies.length;
+
+      // Stats
+      $('countLabel').innerHTML = (state.search || state.year)
+        ? `<strong>${movies.length}</strong> ta natija topildi`
+        : `Jami <strong>${count}</strong> ta kino`;
+
+      renderMovies(movies);
+      renderPagination(count);
+
+    } catch(err) {
+      $('moviesGrid').innerHTML = '';
+      $('pagination').innerHTML = '';
+      $('countLabel').textContent = '';
+      $('errorBanner').style.display = 'block';
+      $('errorBanner').textContent = '⚠️ ' + err.message;
+    }
+  }
+
+  function openMovie(id) {
+    // Detail sahifaga o'tish
+    // window.location.href = `movie-detail.html?id=${id}`;
+    alert(`Kino ID: ${id}`);
+  }
+
+  // Ishga tushirish
+  fetchMovies();
+</script>
+</body>
+</html>
